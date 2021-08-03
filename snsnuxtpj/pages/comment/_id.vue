@@ -37,6 +37,7 @@
             <p v-if="$route.params.messageList.id === commentList.message_id" class="comment-title">{{commentList.user.name}}</p>
 
           <p v-if="$route.params.messageList.id === commentList.message_id" class="comment-content">{{commentList.comment}}</p>
+          {{currentUser}}
           </li>
         </ul>
         <validation-observer ref="obs" v-slot="ObserverProps">
@@ -45,6 +46,7 @@
           <div class="error">{{errors[0]}}</div>
           </validation-provider>
           <button @click="insertComment()" class="btn" type="button" :disabled="ObserverProps.invalid || !ObserverProps.validated">コメント</button>
+          <p>{{currentUser.id}}</p>
         </validation-observer>
       </div>
   </div>
@@ -79,8 +81,8 @@ export default {
   },
   methods: {
     home() {
+      this.$router.push({path:'/home',query:{id:this.currentUser.id}});
       alert('ホームへ戻ります')
-        this.$router.replace('/home')
     },
     logout() {
       firebase
@@ -97,7 +99,7 @@ export default {
       );
       this.userLists = resData.data.data;
       this.userLists.forEach((user) => {
-        if (user.email === this.currentEmail) {
+        if (user.id === this.$route.query.id) {
           this.currentUser = user;
         }
       });
@@ -140,7 +142,7 @@ export default {
       await this.$axios.delete("http://127.0.0.1:8000/api/message/" + id);
       this.getMessage();
       alert('メッセージを削除しました。');
-      this.$router.replace('/home')
+      this.$router.push({path:'/home',query:{email:this.currentEmail}});
     },
     async updateMessage() {
       const sendData = {
@@ -156,15 +158,13 @@ export default {
       if (this.isLike==false) {
         this.isLike=true;
         this.$route.params.messageList.count++;
-        console.log(this.isLike);
       }else{
         this.isLike=false;
         this.$route.params.messageList.count--;
-        console.log(this.isLike);
       }
+      console.log(this.isLike);
       this.updateId = this.$route.params.messageList.id;
       this.updateCount = this.$route.params.messageList.count;
-      console.log(this.$route.params.messageList.id,this.$route.params.messageList.count);
       this.updateMessage(this.$route.params.messageList.id,this.$route.params.messageList.count);
     }
   },

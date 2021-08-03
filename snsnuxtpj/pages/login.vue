@@ -37,33 +37,34 @@ export default {
       .auth()
       .signInWithEmailAndPassword(this.email,this.password)
       .then(() => {
+        this.$router.push({path:'/home',query:{email:this.email}});
         alert('ログインが完了しました')
-        this.$router.push('/home')
       })
       .catch((error) => {
         switch (error.code) {
           case 'auth/invalid-email':
-            alert('メールアドレスの形式が違います。')
+            alert('メールアドレスの形式が違います。');
+            this.$router.push({path:'/login',});
             break;
           case 'auth/user-disabled':
-            alert('ユーザーが無効になっています。')
+            alert('ユーザーが無効になっています。');
+            this.$router.push({path:'/login',});
             break;
           case 'auth/user-not-found':
-            alert('メールアドレスの形式が違います。')
+            alert('メールアドレスの形式が違います。');
+            this.$router.push({path:'/login',});
             break;
           case 'auth/wrond-password':
-            alert('パスワードが間違っております。')
+            alert('パスワードが間違っております。');
+            this.$router.push({path:'/login',});
             break;
           default:
-            alert('エラーが起きました。しばらくしてからお試しください。')
+            alert('エラーが起きました。しばらくしてからお試しください。');
+            this.$router.push({path:'/login',});
             break;
         }
       })
     },
-    pathAddEmail() {
-      const id = this.email
-      this.$router.push({name:'home-id', params: {id}})
-    }
   },
 }
 </script>

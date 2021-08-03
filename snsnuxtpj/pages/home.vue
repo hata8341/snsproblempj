@@ -26,10 +26,10 @@
         <ul>
           <li><h2>ホーム</h2></li>
           <li v-for="(messageList,index) in messageLists" :key="messageList.id"><p class="user-name">{{messageList.user.name}}</p>
-          <p><img v-show="messageList.count>=0" key="messageList.id" @click="counter(index)" class="icon" src="~/assets/img/heart.png" alt="ハートのアイコン">{{messageLists[index].count}}</p>
+          <p><img key="messageList.id" @click="counter(index),$set(messageLists,'isLike',false)" class="icon" src="~/assets/img/heart.png" alt="ハートのアイコン">{{messageLists[index].count}}</p>
           <p><img @click="deleteMessage(messageList.id)" class="icon" src="~/assets/img/cross.png" alt="削除アイコン"></p>
-          <NuxtLink v-bind:to="{name: 'comment-id',params:{messageList}}">
-          <img class="icon comment" src="~/assets/img/detail.png" alt="コメントのアイコン">
+          <NuxtLink v-bind:to="{name: 'comment-id',params:{messageList},query:{id:messageLists[index].user_id}}">
+          <img @click="addQuery(index)" class="icon comment" src="~/assets/img/detail.png" alt="コメントのアイコン">
           </NuxtLink>
           <br><p>{{messageList.message}}</p>
           </li>
@@ -46,11 +46,12 @@ export default {
       userLists: [],
       messageLists: [
         {
+          user:{
+          id:'',
+          name:'',
+          },
+        isLike:Boolean,
         count:0,
-        user:{
-        id:'',
-        name:'',
-        }
       }
       ],
       currentUser: {},
@@ -73,14 +74,19 @@ export default {
         this.$router.replace('/login')
       })
     },
+    addQuery(index) {
+      this.$router.push({path:'/',query:{id:this.messageLists[index].user_id}});
+    },
     async getUser() {
       const resData = await this.$axios.get(
         "http://127.0.0.1:8000/api/user/"
       );
       this.userLists = resData.data.data;
       this.userLists.forEach((user) => {
-        if (user.email === this.currentEmail) {
+        if (user.email === this.$route.query.email) {
           this.currentUser = user;
+        }else{
+          this.currentUser.id=this.$route.query.id;
         }
       });
     },
@@ -115,24 +121,23 @@ export default {
       );
     },
     counter(index){
-      console.log(this.messageLists[index].count);
-      console.log(this.updateId,this.updateCount);
-      if (this.isLike==false) {
-        this.isLike=true;
-        this.messageLists[index].count++;
-        console.log(this.isLike);
-      }else{
-        this.isLike=false;
+      console.log(this.messageLists[index].isLike);
+      if (this.messageLists[index].isLike==false) {
+        this.messageLists[index].isLike=true;
+        console.log(this.messageLists[index].isLike);
         this.messageLists[index].count--;
-        console.log(this.isLike);
+      }else{
+        this.messageLists[index].isLike=false;
+        this.messageLists[index].count++;
       }
         this.updateId = this.messageLists[index].id;
         this.updateCount = this.messageLists[index].count;
-      console.log(this.updateId,this.updatecCount);
       this.updateMessage(this.updateId,this.updatecCount);
-    }
     },
-
+    },
+  beforeCreate(){
+    // this.getUser();
+  },
   created() {
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
@@ -143,6 +148,7 @@ export default {
     this.getUser();
     this.getMessage();
   },
+
 }
 </script>
 
@@ -179,10 +185,6 @@ textarea {
   border-radius: 10px;
   color: #fff;
 }
-/* input {
-  display: block;
-  padding: 50px;
-} */
 .btn {
   width: 100px;
   padding: 5px;
